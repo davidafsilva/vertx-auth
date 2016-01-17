@@ -14,27 +14,31 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.auth.test.jdbc;
+package io.vertx.ext.auth.jdbc;
 
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.jdbc.JDBCAuth;
-import io.vertx.ext.auth.jdbc.impl.JDBCAuthImpl;
-import io.vertx.ext.jdbc.JDBCClient;
-import io.vertx.test.core.VertxTestBase;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.jdbc.JDBCAuth;
+import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
+import io.vertx.ext.jdbc.JDBCClient;
+import io.vertx.test.core.VertxTestBase;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class JDBCAuthTest extends VertxTestBase {
 
+  static final String HASH_ALGORITHM = "SHA-256";
   static final List<String> SQL = new ArrayList<>();
 
   static {
@@ -45,7 +49,7 @@ public class JDBCAuthTest extends VertxTestBase {
     SQL.add("create table user_roles (username varchar(255), role varchar(255));");
     SQL.add("create table roles_perms (role varchar(255), perm varchar(255));");
 
-    SQL.add("insert into user values ('tim', 'EC0D6302E35B7E792DF9DA4A5FE0DB3B90FCAB65A6215215771BF96D498A01DA8234769E1CE8269A105E9112F374FDAB2158E7DA58CDC1348A732351C38E12A0', 'C59EB438D1E24CACA2B1A48BC129348589D49303858E493FBE906A9158B7D5DC');");
+    SQL.add("insert into user values ('tim', 'IlyjozrPOpYmejRNoxijTbNn8NBBFNhKqJUsjY5CXzo=', 'R4direUPfPNIZoIiuaUI7+tcjqoZ9Fks8rrZc/0URvI=')");
     SQL.add("insert into user_roles values ('tim', 'dev');");
     SQL.add("insert into user_roles values ('tim', 'admin');");
     SQL.add("insert into roles_perms values ('dev', 'commit_code');");
@@ -61,7 +65,7 @@ public class JDBCAuthTest extends VertxTestBase {
     SQL.add("create table user_roles2 (user_name varchar(255), role varchar(255));");
     SQL.add("create table roles_perms2 (role varchar(255), perm varchar(255));");
 
-    SQL.add("insert into user2 values ('tim', 'EC0D6302E35B7E792DF9DA4A5FE0DB3B90FCAB65A6215215771BF96D498A01DA8234769E1CE8269A105E9112F374FDAB2158E7DA58CDC1348A732351C38E12A0', 'C59EB438D1E24CACA2B1A48BC129348589D49303858E493FBE906A9158B7D5DC');");
+    SQL.add("insert into user2 values ('tim', 'IlyjozrPOpYmejRNoxijTbNn8NBBFNhKqJUsjY5CXzo=', 'R4direUPfPNIZoIiuaUI7+tcjqoZ9Fks8rrZc/0URvI=')");
     SQL.add("insert into user_roles2 values ('tim', 'dev');");
     SQL.add("insert into user_roles2 values ('tim', 'admin');");
     SQL.add("insert into roles_perms2 values ('dev', 'commit_code');");
@@ -89,15 +93,14 @@ public class JDBCAuthTest extends VertxTestBase {
     final Random r = new SecureRandom();
     byte[] salt = new byte[32];
     r.nextBytes(salt);
-    return JDBCAuthImpl.bytesToHex(salt);
+    return new SaltedHashPasswordStrategy(HASH_ALGORITHM).encode(salt);
   }
 
   public static void main(String[] args) {
     String pwd = "sausages";
     String salt = genSalt();
-    String hashedPwd = JDBCAuthImpl.computeHash(pwd, salt, "SHA-512");
-    System.out.println("salt is:" + salt);
-    System.out.println("hashed pwd is:" + hashedPwd);
+    String hashedPwd = new SaltedHashPasswordStrategy(HASH_ALGORITHM).compute(pwd, Optional.of(salt));
+    System.out.printf("('tim', '%s', '%s')\");%n", hashedPwd, salt);
   }
 
   protected JDBCAuth authProvider;
@@ -106,7 +109,6 @@ public class JDBCAuthTest extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     authProvider = createProvider();
-
   }
 
   protected JDBCAuth createProvider() {

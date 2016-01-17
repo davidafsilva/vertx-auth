@@ -29,6 +29,7 @@
 
   <properties>
     <doc.skip>false</doc.skip>
+    <surefireArgLine/>
   </properties>
 
   <dependencies>

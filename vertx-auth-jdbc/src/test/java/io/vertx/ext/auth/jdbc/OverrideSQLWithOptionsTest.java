@@ -14,10 +14,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.auth.test.jdbc;
-
-import io.vertx.ext.auth.jdbc.JDBCAuth;
-import io.vertx.ext.auth.jdbc.JDBCAuthOptions;
+package io.vertx.ext.auth.jdbc;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

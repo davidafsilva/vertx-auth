@@ -16,28 +16,21 @@
 
 package io.vertx.ext.auth.jdbc.impl;
 
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.VertxException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.jdbc.JDBCAuth;
-import io.vertx.ext.auth.jdbc.JDBCHashStrategy;
+import io.vertx.ext.auth.jdbc.PasswordStrategy;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.function.Consumer;
-
 
 /**
  *
@@ -45,14 +38,12 @@ import java.util.function.Consumer;
  */
 public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
 
-  private static final Logger log = LoggerFactory.getLogger(JDBCAuthImpl.class);
-
   private JDBCClient client;
   private String authenticateQuery = DEFAULT_AUTHENTICATE_QUERY;
   private String rolesQuery = DEFAULT_ROLES_QUERY;
   private String permissionsQuery = DEFAULT_PERMISSIONS_QUERY;
   private String rolePrefix = DEFAULT_ROLE_PREFIX;
-  private JDBCHashStrategy strategy = new DefaultHashStrategy();
+  private PasswordStrategy strategy = new SaltedHashPasswordStrategy("SHA-256");
 
   public JDBCAuthImpl(JDBCClient client) {
     this.client = client;
@@ -81,9 +72,9 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
         }
         case 1: {
           JsonArray row = rs.getResults().get(0);
-          String hashedStoredPwd = strategy.getHashedStoredPwd(row);
-          String salt = strategy.getSalt(row);
-          String hashedPassword = strategy.computeHash(password, salt);
+          String hashedStoredPwd = strategy.getPasswordFromQueryResult(row);
+          Optional<String> salt = strategy.getSaltFromQueryResult(row);
+          String hashedPassword = strategy.compute(password, salt);
           if (hashedStoredPwd.equals(hashedPassword)) {
             resultHandler.handle(Future.succeededFuture(new JDBCUser(username, this, rolePrefix)));
           } else {
@@ -125,7 +116,7 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
   }
 
   @Override
-  public JDBCAuth setHashStrategy(JDBCHashStrategy strategy) {
+  public JDBCAuth setHashStrategy(PasswordStrategy strategy) {
     this.strategy = strategy;
     return this;
   }
@@ -150,53 +141,12 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
     });
   }
 
-  private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
-
-  public static String bytesToHex(byte[] bytes) {
-    char[] chars = new char[bytes.length * 2];
-    for (int i = 0; i < bytes.length; i++) {
-      int x = 0xFF & bytes[i];
-      chars[i * 2] = HEX_CHARS[x >>> 4];
-      chars[1 + i * 2] = HEX_CHARS[0x0F & x];
-    }
-    return new String(chars);
-  }
-
-  public static String computeHash(String password, String salt, String algo) {
-    try {
-      MessageDigest md = MessageDigest.getInstance(algo);
-      String concat = (salt == null ? "" : salt) + password;
-      byte[] bHash = md.digest(concat.getBytes(StandardCharsets.UTF_8));
-      return bytesToHex(bHash);
-    } catch (NoSuchAlgorithmException e) {
-      throw new VertxException(e);
-    }
-  }
-
   String getRolesQuery() {
     return rolesQuery;
   }
 
   String getPermissionsQuery() {
     return permissionsQuery;
-  }
-
-  private class DefaultHashStrategy implements JDBCHashStrategy {
-
-    @Override
-    public String computeHash(String password, String salt) {
-      return JDBCAuthImpl.computeHash(password, salt, "SHA-512");
-    }
-
-    @Override
-    public String getHashedStoredPwd(JsonArray row) {
-      return row.getString(0);
-    }
-
-    @Override
-    public String getSalt(JsonArray row) {
-      return row.getString(1);
-    }
   }
 
 }

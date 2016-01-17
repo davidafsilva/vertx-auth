@@ -94,6 +94,6 @@ public interface JDBCAuth extends AuthProvider {
    * @return a reference to this for fluency
    */
   @GenIgnore
-  JDBCAuth setHashStrategy(JDBCHashStrategy strategy);
+  JDBCAuth setHashStrategy(PasswordStrategy strategy);
 
 }
