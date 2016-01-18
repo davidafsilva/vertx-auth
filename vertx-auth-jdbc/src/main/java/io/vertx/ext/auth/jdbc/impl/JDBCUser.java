@@ -16,6 +16,8 @@
 
 package io.vertx.ext.auth.jdbc.impl;
 
+import java.nio.charset.StandardCharsets;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -25,22 +27,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AbstractUser;
 import io.vertx.ext.auth.AuthProvider;
 
-import java.nio.charset.StandardCharsets;
-
 /**
- *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class JDBCUser extends AbstractUser {
 
   private JDBCAuthImpl authProvider;
-  private String username;
   private JsonObject principal;
-
+  private String username;
   private String rolePrefix;
-
-  public JDBCUser() {
-  }
 
   JDBCUser(String username, JDBCAuthImpl authProvider, String rolePrefix) {
     this.username = username;
@@ -51,7 +46,8 @@ public class JDBCUser extends AbstractUser {
   @Override
   public void doIsPermitted(String permissionOrRole, Handler<AsyncResult<Boolean>> resultHandler) {
     if (permissionOrRole != null && permissionOrRole.startsWith(rolePrefix)) {
-      hasRoleOrPermission(permissionOrRole.substring(rolePrefix.length()), authProvider.getRolesQuery(), resultHandler);
+      hasRoleOrPermission(permissionOrRole.substring(rolePrefix.length()),
+          authProvider.getRolesQuery(), resultHandler);
     } else {
       hasRoleOrPermission(permissionOrRole, authProvider.getPermissionsQuery(), resultHandler);
     }
@@ -68,7 +64,7 @@ public class JDBCUser extends AbstractUser {
   @Override
   public void setAuthProvider(AuthProvider authProvider) {
     if (authProvider instanceof JDBCAuthImpl) {
-      this.authProvider = (JDBCAuthImpl)authProvider;
+      this.authProvider = (JDBCAuthImpl) authProvider;
     } else {
       throw new IllegalArgumentException("Not a JDBCAuthImpl");
     }
@@ -104,20 +100,15 @@ public class JDBCUser extends AbstractUser {
     return pos;
   }
 
-  private void hasRoleOrPermission(String roleOrPermission, String query, Handler<AsyncResult<Boolean>> resultHandler) {
-    authProvider.executeQuery(query, new JsonArray().add(username), resultHandler, rs -> {
-      boolean has = false;
-      for (JsonArray result : rs.getResults()) {
-        String theRoleOrPermission = result.getString(0);
-        if (roleOrPermission.equals(theRoleOrPermission)) {
-          resultHandler.handle(Future.succeededFuture(true));
-          has = true;
-          break;
-        }
-      }
-      if (!has) {
-        resultHandler.handle(Future.succeededFuture(false));
-      }
-    });
+  private void hasRoleOrPermission(String roleOrPermission, String query,
+      Handler<AsyncResult<Boolean>> resultHandler) {
+    authProvider.executeQuery(query, new JsonArray().add(username), resultHandler,
+        rs -> resultHandler.handle(Future.succeededFuture(
+            rs.getResults().stream()
+                // get the role/permission
+                .map(r -> r.getString(0))
+                // check the role/permission matches with the desired one
+                .anyMatch(roleOrPermission::equals))
+        ));
   }
 }

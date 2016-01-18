@@ -33,8 +33,8 @@ public class JDBCAuthOptionsConverter {
     if (json.getValue("config") instanceof JsonObject) {
       obj.setConfig(((JsonObject)json.getValue("config")).copy());
     }
-    if (json.getValue("datasourceName") instanceof String) {
-      obj.setDatasourceName((String)json.getValue("datasourceName"));
+    if (json.getValue("dataSourceName") instanceof String) {
+      obj.setDataSourceName((String)json.getValue("dataSourceName"));
     }
     if (json.getValue("permissionsQuery") instanceof String) {
       obj.setPermissionsQuery((String)json.getValue("permissionsQuery"));
@@ -57,8 +57,8 @@ public class JDBCAuthOptionsConverter {
     if (obj.getConfig() != null) {
       json.put("config", obj.getConfig());
     }
-    if (obj.getDatasourceName() != null) {
-      json.put("datasourceName", obj.getDatasourceName());
+    if (obj.getDataSourceName() != null) {
+      json.put("dataSourceName", obj.getDataSourceName());
     }
     if (obj.getPermissionsQuery() != null) {
       json.put("permissionsQuery", obj.getPermissionsQuery());

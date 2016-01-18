@@ -15,6 +15,8 @@
  */
 package io.vertx.ext.auth.jdbc;
 
+import java.util.Objects;
+
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -28,27 +30,47 @@ import io.vertx.ext.jdbc.JDBCClient;
 @DataObject(generateConverter = true)
 public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
 
-  private boolean shared;
-  private String datasourceName;
-  private String authenticationQuery;
-  private String rolesQuery;
-  private String permissionsQuery;
-  private String rolesPrefix;
+  /**
+   * The default query to be used for authentication
+   */
+  public static final String DEFAULT_AUTHENTICATE_QUERY =
+      "SELECT PASSWORD, PASSWORD_SALT FROM USER WHERE USERNAME = ?";
+
+  /**
+   * The default query to retrieve all roles for the user
+   */
+  public static final String DEFAULT_ROLES_QUERY =
+      "SELECT ROLE FROM USER_ROLES WHERE USERNAME = ?";
+
+  /**
+   * The default query to retrieve all permissions for the role
+   */
+  public static final String DEFAULT_PERMISSIONS_QUERY =
+      "SELECT PERM FROM ROLES_PERMS RP, USER_ROLES UR WHERE UR.USERNAME = ? AND UR.ROLE = RP.ROLE";
+
+  /**
+   * The default role prefix
+   */
+  public static final String DEFAULT_ROLE_PREFIX = "role:";
+
+  private boolean shared = true;
+  private String dataSourceName = JDBCClient.DEFAULT_DS_NAME;
+  private String authenticationQuery = DEFAULT_AUTHENTICATE_QUERY;
+  private String rolesQuery = DEFAULT_ROLES_QUERY;
+  private String permissionsQuery = DEFAULT_PERMISSIONS_QUERY;
+  private String rolesPrefix = DEFAULT_ROLE_PREFIX;
   private JsonObject config;
 
   public JDBCAuthOptions() {
-    this.shared = true;
-    this.config = null;
   }
 
   public JDBCAuthOptions(JDBCAuthOptions that) {
     shared = that.shared;
-    datasourceName = that.datasourceName;
+    dataSourceName = that.dataSourceName;
     config = that.config != null ? that.config.copy() : null;
   }
 
   public JDBCAuthOptions(JsonObject json) {
-    this();
     JDBCAuthOptionsConverter.fromJson(json, this);
   }
 
@@ -59,30 +81,16 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
 
   @Override
   public JDBCAuth createProvider(Vertx vertx) {
-    JDBCClient client;
-    if (shared) {
-      if (datasourceName != null) {
-        client = JDBCClient.createShared(vertx, config, datasourceName);
-      } else {
-        client = JDBCClient.createShared(vertx, config);
-      }
-    } else {
-      client = JDBCClient.createNonShared(vertx, config);
-    }
-    JDBCAuth auth = JDBCAuth.create(client);
-    if (authenticationQuery != null) {
-      auth.setAuthenticationQuery(authenticationQuery);
-    }
-    if (rolesQuery != null) {
-      auth.setRolesQuery(rolesQuery);
-    }
-    if (permissionsQuery != null) {
-      auth.setPermissionsQuery(permissionsQuery);
-    }
-    if (rolesPrefix != null) {
-      auth.setRolePrefix(rolesPrefix);
-    }
-    return auth;
+    // create the JDBC client
+    final JDBCClient client = shared ?
+        JDBCClient.createShared(vertx, config, dataSourceName) :
+        JDBCClient.createNonShared(vertx, config);
+    // create the auth implementation
+    return JDBCAuth.create(client)
+        .setAuthenticationQuery(authenticationQuery)
+        .setPermissionsQuery(permissionsQuery)
+        .setRolesQuery(rolesQuery)
+        .setRolePrefix(rolesPrefix);
   }
 
   public boolean isShared() {
@@ -100,18 +108,18 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
     return this;
   }
 
-  public String getDatasourceName() {
-    return datasourceName;
+  public String getDataSourceName() {
+    return dataSourceName;
   }
 
   /**
    * Set the data source name to use, only use in shared mode.
    *
-   * @param datasourceName the data source name
+   * @param dataSourceName the data source name
    * @return a reference to this, so the API can be used fluently
    */
-  public JDBCAuthOptions setDatasourceName(String datasourceName) {
-    this.datasourceName = datasourceName;
+  public JDBCAuthOptions setDataSourceName(String dataSourceName) {
+    this.dataSourceName = Objects.requireNonNull(dataSourceName, "dataSourceName");
     return this;
   }
 
@@ -122,7 +130,7 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
   /**
    * The configuration of the JDBC client: refer to the Vert.x JDBC Client configuration.
    *
-   * @param config
+   * @param config the JDBC client configuration
    * @return a reference to this, so the API can be used fluently
    */
   public JDBCAuthOptions setConfig(JsonObject config) {
@@ -135,13 +143,14 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
   }
 
   /**
-   * Set the authentication query to use. Use this if you want to override the default authentication query.
+   * Set the authentication query to use. Use this if you want to override the default
+   * authentication query.
    *
    * @param authenticationQuery the authentication query
    * @return a reference to this, so the API can be used fluently
    */
   public JDBCAuthOptions setAuthenticationQuery(String authenticationQuery) {
-    this.authenticationQuery = authenticationQuery;
+    this.authenticationQuery = Objects.requireNonNull(authenticationQuery, "authenticationQuery");
     return this;
   }
 
@@ -156,7 +165,7 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
    * @return a reference to this, so the API can be used fluently
    */
   public JDBCAuthOptions setRolesQuery(String rolesQuery) {
-    this.rolesQuery = rolesQuery;
+    this.rolesQuery = Objects.requireNonNull(rolesQuery, "rolesQuery");
     return this;
   }
 
@@ -165,13 +174,14 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
   }
 
   /**
-   * Set the permissions query to use. Use this if you want to override the default permissions query.
+   * Set the permissions query to use. Use this if you want to override the default permissions
+   * query.
    *
    * @param permissionsQuery the permissions query
    * @return a reference to this, so the API can be used fluently
    */
   public JDBCAuthOptions setPermissionsQuery(String permissionsQuery) {
-    this.permissionsQuery = permissionsQuery;
+    this.permissionsQuery = Objects.requireNonNull(permissionsQuery, "permissionsQuery");
     return this;
   }
 
@@ -186,7 +196,7 @@ public class JDBCAuthOptions implements io.vertx.ext.auth.AuthOptions {
    * @return a reference to this, so the API can be used fluently
    */
   public JDBCAuthOptions setRolesPrefix(String rolesPrefix) {
-    this.rolesPrefix = rolesPrefix;
+    this.rolesPrefix = Objects.requireNonNull(rolesPrefix, "rolesPrefix");
     return this;
   }
 }

@@ -27,6 +27,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.jdbc.JDBCAuth;
+import io.vertx.ext.auth.jdbc.JDBCAuthOptions;
 import io.vertx.ext.auth.jdbc.PasswordStrategy;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
@@ -39,10 +40,10 @@ import io.vertx.ext.sql.SQLConnection;
 public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
 
   private JDBCClient client;
-  private String authenticateQuery = DEFAULT_AUTHENTICATE_QUERY;
-  private String rolesQuery = DEFAULT_ROLES_QUERY;
-  private String permissionsQuery = DEFAULT_PERMISSIONS_QUERY;
-  private String rolePrefix = DEFAULT_ROLE_PREFIX;
+  private String authenticateQuery = JDBCAuthOptions.DEFAULT_AUTHENTICATE_QUERY;
+  private String rolesQuery = JDBCAuthOptions.DEFAULT_ROLES_QUERY;
+  private String permissionsQuery = JDBCAuthOptions.DEFAULT_PERMISSIONS_QUERY;
+  private String rolePrefix = JDBCAuthOptions.DEFAULT_ROLE_PREFIX;
   private PasswordStrategy strategy = new SaltedHashPasswordStrategy("SHA-256");
 
   public JDBCAuthImpl(JDBCClient client) {
@@ -65,11 +66,6 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
     executeQuery(authenticateQuery, new JsonArray().add(username), resultHandler, rs -> {
 
       switch (rs.getNumRows()) {
-        case 0: {
-          // Unknown user/password
-          resultHandler.handle(Future.failedFuture("Invalid username/password"));
-          break;
-        }
         case 1: {
           JsonArray row = rs.getResults().get(0);
           String hashedStoredPwd = strategy.getPasswordFromQueryResult(row);
@@ -77,14 +73,12 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
           String hashedPassword = strategy.compute(password, salt);
           if (hashedStoredPwd.equals(hashedPassword)) {
             resultHandler.handle(Future.succeededFuture(new JDBCUser(username, this, rolePrefix)));
-          } else {
-            resultHandler.handle(Future.failedFuture("Invalid username/password"));
+            break;
           }
-          break;
         }
         default: {
-          // More than one row returned!
-          resultHandler.handle(Future.failedFuture("Failure in authentication"));
+          // More than one row returned - keep the same error message to not leak any information
+          resultHandler.handle(Future.failedFuture("Invalid username/password"));
           break;
         }
       }
@@ -121,8 +115,8 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
     return this;
   }
 
-  protected <T> void executeQuery(String query, JsonArray params, Handler<AsyncResult<T>> resultHandler,
-                                Consumer<ResultSet> resultSetConsumer) {
+  protected <T> void executeQuery(String query, JsonArray params,
+      Handler<AsyncResult<T>> resultHandler, Consumer<ResultSet> resultSetConsumer) {
     client.getConnection(res -> {
       if (res.succeeded()) {
         SQLConnection conn = res.result();

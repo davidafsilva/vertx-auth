@@ -14,19 +14,21 @@
 ^|Name | Type ^| Description
 |[[authenticationQuery]]`authenticationQuery`|`String`|
 +++
-Set the authentication query to use. Use this if you want to override the default authentication query.
+Set the authentication query to use. Use this if you want to override the default
+ authentication query.
 +++
 |[[config]]`config`|`Json object`|
 +++
 The configuration of the JDBC client: refer to the Vert.x JDBC Client configuration.
 +++
-|[[datasourceName]]`datasourceName`|`String`|
+|[[dataSourceName]]`dataSourceName`|`String`|
 +++
 Set the data source name to use, only use in shared mode.
 +++
 |[[permissionsQuery]]`permissionsQuery`|`String`|
 +++
-Set the permissions query to use. Use this if you want to override the default permissions query.
+Set the permissions query to use. Use this if you want to override the default permissions
+ query.
 +++
 |[[rolesPrefix]]`rolesPrefix`|`String`|
 +++

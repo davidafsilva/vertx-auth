@@ -31,26 +31,6 @@ import io.vertx.ext.jdbc.JDBCClient;
 public interface JDBCAuth extends AuthProvider {
 
   /**
-   * The default query to be used for authentication
-   */
-  String DEFAULT_AUTHENTICATE_QUERY = "SELECT PASSWORD, PASSWORD_SALT FROM USER WHERE USERNAME = ?";
-
-  /**
-   * The default query to retrieve all roles for the user
-   */
-  String DEFAULT_ROLES_QUERY = "SELECT ROLE FROM USER_ROLES WHERE USERNAME = ?";
-
-  /**
-   * The default query to retrieve all permissions for the role
-   */
-  String DEFAULT_PERMISSIONS_QUERY = "SELECT PERM FROM ROLES_PERMS RP, USER_ROLES UR WHERE UR.USERNAME = ? AND UR.ROLE = RP.ROLE";
-
-  /**
-   * The default role prefix
-   */
-  String DEFAULT_ROLE_PREFIX = "role:";
-
-  /**
    * Create a JDBC auth provider implementation
    *
    * @param client  the JDBC client instance
