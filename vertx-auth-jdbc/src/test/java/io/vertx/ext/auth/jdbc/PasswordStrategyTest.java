@@ -8,7 +8,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertFalse;
 
 /**
- * Unit tests for the {@link PasswordStrategy} static factory method.
+ * Unit tests for the {@link PasswordStrategy} static factory methods.
  *
  * @author david
  */
@@ -18,6 +18,13 @@ public class PasswordStrategyTest {
   public void test_supportedAlgorithms() {
     Security.getAlgorithms("MESSAGEDIGEST").stream()
         .map(PasswordStrategy::create)
+        .allMatch(Optional::isPresent);
+  }
+
+  @Test
+  public void test_supportedAlgorithmsWithEncoder() {
+    Security.getAlgorithms("MESSAGEDIGEST").stream()
+        .map(alg -> PasswordStrategy.create(alg, PasswordEncoder.hex()))
         .allMatch(Optional::isPresent);
   }
 

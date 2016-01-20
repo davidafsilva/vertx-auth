@@ -6,8 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.vertx.core.VertxException;
-import io.vertx.core.json.JsonArray;
-import io.vertx.ext.auth.jdbc.PasswordStrategy;
+import io.vertx.ext.auth.jdbc.PasswordEncoder;
 
 /**
  * <p>
@@ -17,13 +16,13 @@ import io.vertx.ext.auth.jdbc.PasswordStrategy;
  * </p>
  *
  * <p>
- * The output of this implementation follows the default {@link #encode(byte[]) encode}
- * mechanism provided by the {@link PasswordStrategy interface}.
+ * The output of this implementation will use a Base64 encoder if one is not specified via
+ * {@link #encoder(PasswordEncoder)}.
  * </p>
  *
  * @author david
  */
-public class SaltedHashPasswordStrategy implements PasswordStrategy {
+public class SaltedHashPasswordStrategy extends AbstractPasswordStrategy {
 
   // the hash algorithm
   private final String algorithm;
@@ -67,20 +66,9 @@ public class SaltedHashPasswordStrategy implements PasswordStrategy {
       final byte[] hash = md.digest(password.getBytes(StandardCharsets.UTF_8));
 
       // return the encoded hash
-      return encode(hash);
+      return encoder.encode(hash);
     } catch (final NoSuchAlgorithmException e) {
       throw new VertxException(e);
     }
   }
-
-  @Override
-  public String getPasswordFromQueryResult(JsonArray row) {
-    return row.getString(0);
-  }
-
-  @Override
-  public Optional<String> getSaltFromQueryResult(JsonArray row) {
-    return Optional.ofNullable(row.getString(1));
-  }
-
 }

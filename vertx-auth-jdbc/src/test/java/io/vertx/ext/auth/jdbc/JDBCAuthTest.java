@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Random;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.jdbc.JDBCAuth;
 import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.test.core.VertxTestBase;
@@ -93,7 +92,7 @@ public class JDBCAuthTest extends VertxTestBase {
     final Random r = new SecureRandom();
     byte[] salt = new byte[32];
     r.nextBytes(salt);
-    return new SaltedHashPasswordStrategy(HASH_ALGORITHM).encode(salt);
+    return PasswordEncoder.base64().encode(salt);
   }
 
   public static void main(String[] args) {
