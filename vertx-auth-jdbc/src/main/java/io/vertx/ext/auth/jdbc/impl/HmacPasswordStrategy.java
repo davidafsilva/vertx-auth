@@ -9,6 +9,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.vertx.core.VertxException;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.auth.jdbc.PasswordEncoder;
 
 /**
@@ -66,5 +67,18 @@ public class HmacPasswordStrategy extends AbstractHashStrategy {
     } catch (final NoSuchAlgorithmException | InvalidKeyException e) {
       throw new VertxException(e);
     }
+  }
+
+  /**
+   * Retrieve the salt from the row data of the authentication query, if salt is not available,
+   * a {@link NullPointerException} will be thrown.
+   *
+   * @param row the row data
+   * @return the salt, if any
+   * @throws NullPointerException if the salt is not available
+   */
+  @Override
+  public Optional<String> getSaltFromQueryResult(final JsonArray row) {
+    return Optional.of(row.getString(1));
   }
 }

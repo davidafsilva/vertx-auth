@@ -2,11 +2,12 @@ package io.vertx.ext.auth.jdbc;
 
 import java.security.Security;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 
+import io.vertx.ext.auth.jdbc.impl.BCryptPasswordStrategy;
 import io.vertx.ext.auth.jdbc.impl.HmacPasswordStrategy;
 import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
 
@@ -18,7 +19,8 @@ import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
  */
 enum SupportedAlgorithm {
   HMAC(HmacPasswordStrategy::new),
-  MESSAGEDIGEST(SaltedHashPasswordStrategy::new);
+  MESSAGEDIGEST(SaltedHashPasswordStrategy::new),
+  BCRYPT(alg -> new BCryptPasswordStrategy());
 
   // the supported algorithms
   private static final Map<String, SupportedAlgorithm> ALGORITHMS;
@@ -26,10 +28,11 @@ enum SupportedAlgorithm {
   // create the algorithm mapping by looking up the available security providers and
   // their supported algorithms for each type
   static {
-    ALGORITHMS = new HashMap<>(SupportedAlgorithm.values().length);
+    ALGORITHMS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     Arrays.stream(SupportedAlgorithm.values())
         .forEach(type -> Security.getAlgorithms(type.name()).stream()
             .forEach(algorithm -> ALGORITHMS.put(algorithm, type)));
+    ALGORITHMS.put(SupportedAlgorithm.BCRYPT.name(), SupportedAlgorithm.BCRYPT);
   }
 
   // the factory function
