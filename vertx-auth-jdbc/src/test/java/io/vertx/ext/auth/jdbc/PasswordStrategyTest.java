@@ -15,16 +15,16 @@ import static org.junit.Assert.assertFalse;
 public class PasswordStrategyTest {
 
   @Test
-  public void test_supportedAlgorithms() {
+  public void test_supportedAlgorithms_hash() {
     Security.getAlgorithms("MESSAGEDIGEST").stream()
         .map(PasswordStrategy::create)
         .allMatch(Optional::isPresent);
   }
 
   @Test
-  public void test_supportedAlgorithmsWithEncoder() {
-    Security.getAlgorithms("MESSAGEDIGEST").stream()
-        .map(alg -> PasswordStrategy.create(alg, PasswordEncoder.hex()))
+  public void test_supportedAlgorithms_mac() {
+    Security.getAlgorithms("HMAC").stream()
+        .map(PasswordStrategy::create)
         .allMatch(Optional::isPresent);
   }
 

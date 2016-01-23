@@ -22,10 +22,7 @@ import io.vertx.ext.auth.jdbc.PasswordEncoder;
  *
  * @author david
  */
-public class SaltedHashPasswordStrategy extends AbstractPasswordStrategy {
-
-  // the hash algorithm
-  private final String algorithm;
+public class SaltedHashPasswordStrategy extends AbstractHashStrategy {
 
   /**
    * Creates a new hashed strategy with the given hashing algorithm
@@ -33,29 +30,18 @@ public class SaltedHashPasswordStrategy extends AbstractPasswordStrategy {
    * @param algorithm the hash algorithm
    */
   public SaltedHashPasswordStrategy(final String algorithm) {
-    this.algorithm = algorithm;
+    super(algorithm);
   }
 
-  /**
-   * Checks whether or not the configured algorithm is available from the available security
-   * providers
-   *
-   * @return {@code true} if the algorithm is available, {@code false} otherwise.
-   */
-  public boolean isSupported() {
-    boolean supported = true;
-    try {
-      MessageDigest.getInstance(algorithm);
-    } catch (final NoSuchAlgorithmException e) {
-      // no algorithm available
-      supported = false;
-    }
-    return supported;
+  @Override
+  boolean isAlgorithmSupported() throws NoSuchAlgorithmException {
+    return MessageDigest.getInstance(algorithm) != null;
   }
 
   @Override
   public String compute(final String password, final Optional<String> salt) {
     try {
+      // get the digest algorithm implementation instance
       final MessageDigest md = MessageDigest.getInstance(algorithm);
       md.reset();
 

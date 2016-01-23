@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
 
 /**
  * Defines the base contract for the password computation strategies that are implemented in
@@ -33,14 +32,17 @@ import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
 public interface PasswordStrategy {
 
   /**
-   * Creates a default hash strategy with the specified algorithm based on the available security
-   * providers, following the Java Cryptography Architecture (JCA). The preferred provider will
-   * be used when multiple provider are available for the same algorithm.
+   * Creates a password strategy with the specified algorithm based on the available and supported
+   * algorithms.
+   * Hash based algorithms are supported through security providers, following the Java
+   * Cryptography Architecture (JCA). The preferred provider will be used when multiple provider
+   * are available for the same algorithm.
+   *
    * By default, a Base64 {@link PasswordEncoder encoder} will be used, which is more compact then
    * hexadecimal.
    *
    * @param algorithm the algorithm
-   * @return a new instance of the hash strategy if the algorithm is supported, none if it's not.
+   * @return a new instance of the password strategy if the algorithm is supported
    * @see #create(String, PasswordEncoder)
    */
   static Optional<PasswordStrategy> create(final String algorithm) {
@@ -48,19 +50,21 @@ public interface PasswordStrategy {
   }
 
   /**
-   * Creates a default hash strategy with the specified algorithm based on the available security
-   * providers, following the Java Cryptography Architecture (JCA). The preferred provider will
-   * be used when multiple provider are available for the same algorithm.
+   * Creates a password strategy with the specified algorithm based on the available and supported
+   * algorithms.
+   * Hash based algorithms are supported through security providers, following the Java
+   * Cryptography Architecture (JCA). The preferred provider will be used when multiple provider
+   * are available for the same algorithm.
+   *
    * The output of the strategy compute function will be encoded with the specified encoder.
    *
    * @param algorithm the algorithm
    * @param encoder   the output encoder
-   * @return a new instance of the hash strategy if the algorithm is supported, none if it's not.
+   * @return a new instance of the password strategy if the algorithm is supported
    */
   static Optional<PasswordStrategy> create(final String algorithm, final PasswordEncoder encoder) {
     Objects.requireNonNull(algorithm, "algorithm");
-    final SaltedHashPasswordStrategy strategy = new SaltedHashPasswordStrategy(algorithm);
-    return strategy.isSupported() ? Optional.of(strategy.encoder(encoder)) : Optional.empty();
+    return SupportedAlgorithm.create(algorithm, encoder);
   }
 
   /**
