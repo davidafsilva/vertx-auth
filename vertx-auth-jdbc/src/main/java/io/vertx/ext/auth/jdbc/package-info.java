@@ -61,7 +61,7 @@
  * concatenated with a salt. It also assumes the salt is stored in the table too.
  *
  * If you want to override this behaviour you can do so by providing an alternative hash strategy and setting it with
- * {@link io.vertx.ext.auth.jdbc.JDBCAuth#setHashStrategy(PasswordStrategy)}.
+ * {@link io.vertx.ext.auth.jdbc.JDBCAuth#setPasswordStrategy(PasswordStrategy)}.
  *
  * WARNING: It is advised to always store your passwords as hashes in your database tables which have been created
  * with a salt which should be stored in the row too. A strong hashing algorithm should be used. It is strongly advised

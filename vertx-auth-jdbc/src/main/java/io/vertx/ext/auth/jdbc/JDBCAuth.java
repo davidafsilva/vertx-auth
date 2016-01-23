@@ -69,11 +69,11 @@ public interface JDBCAuth extends AuthProvider {
   JDBCAuth setRolePrefix(String rolePrefix);
 
   /**
-   * Set the hash strategy to use. Use this if you want override the default hash strategy
+   * Set the password strategy to use. Use this if you want override the default hash strategy
    * @param strategy  the strategy
    * @return a reference to this for fluency
    */
   @GenIgnore
-  JDBCAuth setHashStrategy(PasswordStrategy strategy);
+  JDBCAuth setPasswordStrategy(PasswordStrategy strategy);
 
 }

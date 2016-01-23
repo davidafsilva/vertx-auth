@@ -110,7 +110,7 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
   }
 
   @Override
-  public JDBCAuth setHashStrategy(PasswordStrategy strategy) {
+  public JDBCAuth setPasswordStrategy(PasswordStrategy strategy) {
     this.strategy = strategy;
     return this;
   }
