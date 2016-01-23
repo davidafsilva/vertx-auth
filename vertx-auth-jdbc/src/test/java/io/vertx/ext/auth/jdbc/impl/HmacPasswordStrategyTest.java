@@ -5,8 +5,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.security.Security;
-import java.util.Arrays;
 import java.util.Optional;
 
 import io.vertx.core.VertxException;
@@ -32,14 +30,6 @@ public class HmacPasswordStrategyTest {
   public static void setup() {
     strategy = new HmacPasswordStrategy("HMACSHA256");
     assertTrue(strategy.isSupported());
-  }
-
-  @Test
-  public void bla() {
-    Arrays.stream(Security.getProviders())
-        .filter(p -> p.containsValue("HMACSHA256"))
-        .flatMap(p -> p.entrySet().stream())
-        .forEach(e -> System.out.println(e.getValue()));
   }
 
   @Test
