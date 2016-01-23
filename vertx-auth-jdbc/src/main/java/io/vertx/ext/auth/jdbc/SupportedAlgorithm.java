@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import io.vertx.ext.auth.jdbc.impl.BCryptPasswordStrategy;
 import io.vertx.ext.auth.jdbc.impl.HmacPasswordStrategy;
@@ -18,9 +18,9 @@ import io.vertx.ext.auth.jdbc.impl.SaltedHashPasswordStrategy;
  * @author david
  */
 enum SupportedAlgorithm {
-  HMAC(HmacPasswordStrategy::new),
-  MESSAGEDIGEST(SaltedHashPasswordStrategy::new),
-  BCRYPT(alg -> new BCryptPasswordStrategy());
+  HMAC((a, e) -> new HmacPasswordStrategy(a).encoder(e)),
+  MESSAGEDIGEST((a, e) -> new SaltedHashPasswordStrategy(a).encoder(e)),
+  BCRYPT((a, e) -> new BCryptPasswordStrategy());
 
   // the supported algorithms
   private static final Map<String, SupportedAlgorithm> ALGORITHMS;
@@ -36,10 +36,10 @@ enum SupportedAlgorithm {
   }
 
   // the factory function
-  private final Function<String, PasswordStrategy> factory;
+  private final BiFunction<String, PasswordEncoder, PasswordStrategy> factory;
 
   // enum constructor - receives the underlying factory function
-  SupportedAlgorithm(final Function<String, PasswordStrategy> factory) {
+  SupportedAlgorithm(final BiFunction<String, PasswordEncoder, PasswordStrategy> factory) {
     this.factory = factory;
   }
 
@@ -48,7 +48,7 @@ enum SupportedAlgorithm {
    *
    * @return the factory function
    */
-  private Function<String, PasswordStrategy> getFactory() {
+  private BiFunction<String, PasswordEncoder, PasswordStrategy> getFactory() {
     return factory;
   }
 
@@ -63,6 +63,6 @@ enum SupportedAlgorithm {
   static Optional<PasswordStrategy> create(final String algorithm, final PasswordEncoder encoder) {
     return Optional.ofNullable(ALGORITHMS.get(algorithm))
         .map(SupportedAlgorithm::getFactory)
-        .map(f -> f.apply(algorithm));
+        .map(f -> f.apply(algorithm, encoder));
   }
 }
