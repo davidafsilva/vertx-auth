@@ -44,15 +44,26 @@ with the operations `link:../../apidocs/io/vertx/ext/auth/jdbc/JDBCAuth.html#set
 `link:../../apidocs/io/vertx/ext/auth/jdbc/JDBCAuth.html#setRolesQuery-java.lang.String-[setRolesQuery]`, if you want to use them with a different
 database schema.
 
-The default implementation assumes that the password is stored in the database as a SHA-512 hash after being
-concatenated with a salt. It also assumes the salt is stored in the table too.
+The default implementation assumes that the password is stored in the database as a SHA-512 hash.
+Salts are also supported, if provided/available they're added to the digest pior to hashing the
+password. It also assumes that the salt is stored in the table too along with the password hash.
 
-If you want to override this behaviour you can do so by providing an alternative hash strategy and setting it with
-`link:../../apidocs/io/vertx/ext/auth/jdbc/JDBCAuth.html#setPasswordStrategy-io.vertx.ext.auth.jdbc.PasswordStrategy-[setPasswordStrategy]`.
+Vert.x supports both message digest and message authentication code algorithms that are
+available through JCA security providers, along with BCrypt support (relies on `link:http://www.mindrot.org/projects/jBCrypt/[jBCrypt]`).
+To create any of the above mentioned strategies, simply use the available static factory method via
+`link:../../apidocs/io/vertx/ext/auth/jdbc/PasswordStrategy.html#create-java.lang.String-[create]` and specify the desired algorithm.
 
-WARNING: It is advised to always store your passwords as hashes in your database tables which have been created
-with a salt which should be stored in the row too. A strong hashing algorithm should be used. It is strongly advised
-never to store your passwords as plain text.
+Additionally, you can also specify a `link:../../apidocs/io/vertx/ext/auth/jdbc/PasswordEncoder.html[password encoder]`, which will encode
+the output of the digest/mac functions with the specified implementation. We provide support for both
+Hexadecimal and Base64 encoders, the latter being the default.
+
+Any of the built-in or your own alternative password strategy implementations can be provided and used by setting it
+with `link:../../apidocs/io/vertx/ext/auth/jdbc/JDBCAuth.html#setPasswordStrategy-io.vertx.ext.auth.jdbc.PasswordStrategy-[setPasswordStrategy]`.
+
+WARNING: It is advised to never store your passwords as plaintext at your database/tables. Instead, you
+should always use some solid, strong and proven hashing technique/algorithm, such as PBKDF (as BCrypt),
+HMAC (as HMAC-SHA512) or an hashing algorithm (as SHA-512) together with a salt. The latter should always
+be used with a salt, without it your data is more vulnerable to several attack vectors, such as brute-force and rainbow table attacks.
 
 == Authentication
 
