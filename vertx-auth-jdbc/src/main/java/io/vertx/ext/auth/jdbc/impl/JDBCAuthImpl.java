@@ -44,7 +44,7 @@ public class JDBCAuthImpl implements AuthProvider, JDBCAuth {
   private String rolesQuery = JDBCAuthOptions.DEFAULT_ROLES_QUERY;
   private String permissionsQuery = JDBCAuthOptions.DEFAULT_PERMISSIONS_QUERY;
   private String rolePrefix = JDBCAuthOptions.DEFAULT_ROLE_PREFIX;
-  private PasswordStrategy strategy = new SaltedHashPasswordStrategy("SHA-256");
+  private PasswordStrategy strategy = new SaltedHashPasswordStrategy("SHA-512");
 
   public JDBCAuthImpl(JDBCClient client) {
     this.client = client;

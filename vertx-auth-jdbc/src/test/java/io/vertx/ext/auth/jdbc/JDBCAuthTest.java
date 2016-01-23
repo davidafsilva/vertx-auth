@@ -37,7 +37,7 @@ import io.vertx.test.core.VertxTestBase;
  */
 public class JDBCAuthTest extends VertxTestBase {
 
-  static final String HASH_ALGORITHM = "SHA-256";
+  static final String HASH_ALGORITHM = "SHA-512";
   static final List<String> SQL = new ArrayList<>();
 
   static {
@@ -48,7 +48,7 @@ public class JDBCAuthTest extends VertxTestBase {
     SQL.add("create table user_roles (username varchar(255), role varchar(255));");
     SQL.add("create table roles_perms (role varchar(255), perm varchar(255));");
 
-    SQL.add("insert into user values ('tim', 'IlyjozrPOpYmejRNoxijTbNn8NBBFNhKqJUsjY5CXzo=', 'R4direUPfPNIZoIiuaUI7+tcjqoZ9Fks8rrZc/0URvI=')");
+    SQL.add("insert into user values ('tim', 'J7T2XI3Uq9WgHqn/uiSrN4SUCMMvwGyTO9ugzyEWA9GvkIFZ8yisqeYzTAzsP1HLJJ0Y1nCveIYQZUf3gE5k3Q==', 'h7QKWAduHj4T/FbMOhQsKQxiYHBP6R5D2ARIr+4q0DI=')");
     SQL.add("insert into user_roles values ('tim', 'dev');");
     SQL.add("insert into user_roles values ('tim', 'admin');");
     SQL.add("insert into roles_perms values ('dev', 'commit_code');");
@@ -64,7 +64,7 @@ public class JDBCAuthTest extends VertxTestBase {
     SQL.add("create table user_roles2 (user_name varchar(255), role varchar(255));");
     SQL.add("create table roles_perms2 (role varchar(255), perm varchar(255));");
 
-    SQL.add("insert into user2 values ('tim', 'IlyjozrPOpYmejRNoxijTbNn8NBBFNhKqJUsjY5CXzo=', 'R4direUPfPNIZoIiuaUI7+tcjqoZ9Fks8rrZc/0URvI=')");
+    SQL.add("insert into user2 values ('tim', 'J7T2XI3Uq9WgHqn/uiSrN4SUCMMvwGyTO9ugzyEWA9GvkIFZ8yisqeYzTAzsP1HLJJ0Y1nCveIYQZUf3gE5k3Q==', 'h7QKWAduHj4T/FbMOhQsKQxiYHBP6R5D2ARIr+4q0DI=')");
     SQL.add("insert into user_roles2 values ('tim', 'dev');");
     SQL.add("insert into user_roles2 values ('tim', 'admin');");
     SQL.add("insert into roles_perms2 values ('dev', 'commit_code');");
